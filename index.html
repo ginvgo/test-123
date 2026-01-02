@@ -3,195 +3,171 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>专业记分 Pro</title>
+    <title>持久记分 Pro</title>
     <style>
         :root { --primary: #1890ff; --danger: #ff4d4f; --success: #52c41a; --text: #262626; --bg: #f2f4f7; }
-        
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); margin: 0; padding: 12px; color: var(--text); overflow-x: hidden; }
+        .card { background: white; border-radius: 16px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 12px; width: 100%; }
         
-        body { 
-            font-family: -apple-system, system-ui, sans-serif; 
-            background: var(--bg); margin: 0; padding: 12px; 
-            color: var(--text); line-height: 1.5;
-            overflow-x: hidden; /* 严防横向溢出 */
-        }
-
-        .card { 
-            background: white; border-radius: 16px; padding: 16px; 
-            box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 12px; 
-            width: 100%;
-        }
-
-        /* 顶部输入区 */
+        /* 顶部 */
         .header-group { display: flex; gap: 8px; }
-        .inp-name { 
-            flex: 1; border: 1px solid #d9d9d9; border-radius: 10px; 
-            padding: 10px; font-size: 16px; min-width: 0; /* 防止Flex撑开 */
-        }
+        .inp-name { flex: 1; border: 1px solid #d9d9d9; border-radius: 10px; padding: 10px; font-size: 16px; min-width: 0; }
         .btn-add { background: var(--primary); color: white; border: none; border-radius: 10px; padding: 0 16px; font-weight: bold; white-space: nowrap; }
-
-        /* 倍率设置 */
+        
+        /* 倍率 */
         .rate-box { display: flex; align-items: center; gap: 8px; margin-top: 12px; font-size: 14px; color: #666; }
-        .inp-rate { width: 60px; border: 1px solid #d9d9d9; border-radius: 6px; padding: 4px; text-align: center; }
+        .inp-rate { width: 60px; border: 1px solid #d9d9d9; border-radius: 6px; padding: 4px; text-align: center; font-size: 14px; }
 
-        /* 用户卡片 */
+        /* 卡片 */
         .user-card { background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px; border: 1px solid #f0f0f0; }
         .user-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
-        .u-info { min-width: 0; }
-        .u-name { font-size: 1.1rem; font-weight: bold; display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .btn-del { border: none; background: none; color: #bfbfbf; font-size: 12px; padding: 0; margin-top: 4px; }
+        .u-name { font-size: 1.1rem; font-weight: bold; max-width: 150px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .btn-del { border: none; background: none; color: #bfbfbf; font-size: 12px; padding: 0; margin-top: 4px; text-decoration: underline; }
         .u-score { font-size: 1.8rem; font-weight: 800; color: var(--primary); }
 
-        /* 核心三段式操作栏 - 绝不溢出 */
+        /* 操作栏 */
         .control-bar { display: flex; align-items: center; gap: 10px; width: 100%; }
-        .btn-main { 
-            width: 60px; height: 50px; border: none; border-radius: 12px; 
-            font-size: 24px; color: white; display: flex; align-items: center; justify-content: center;
-            flex-shrink: 0; /* 按钮大小固定 */
-        }
+        .btn-main { width: 60px; height: 50px; border: none; border-radius: 12px; font-size: 24px; color: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .btn-sub { background: var(--danger); box-shadow: 0 3px 0 #cf1322; }
         .btn-plus { background: var(--success); box-shadow: 0 3px 0 #389e0d; }
         .btn-main:active { transform: translateY(2px); box-shadow: none; }
-        
-        .val-input { 
-            flex: 1; min-width: 0; height: 50px; font-size: 20px; font-weight: bold; 
-            border: 2px solid #f0f0f0; background: #fafafa; border-radius: 12px;
-            text-align: center; color: var(--text);
-        }
+        .val-input { flex: 1; min-width: 0; height: 50px; font-size: 20px; font-weight: bold; border: 2px solid #f0f0f0; background: #fafafa; border-radius: 12px; text-align: center; }
 
-        /* 折叠历史记录 */
-        .hist-section { margin-top: 12px; border-top: 1px solid #fafafa; }
-        .hist-toggle { display: block; text-align: center; font-size: 13px; color: #bfbfbf; padding: 8px 0; text-decoration: none; }
-        .hist-content { display: none; background: #fafafa; border-radius: 10px; padding: 10px; max-height: 150px; overflow-y: auto; }
+        /* 历史 */
+        .hist-toggle { display: block; text-align: center; font-size: 13px; color: #bfbfbf; padding: 10px 0 0; text-decoration: none; }
+        .hist-content { display: none; background: #fafafa; border-radius: 10px; padding: 10px; margin-top: 10px; max-height: 120px; overflow-y: auto; }
         .hist-item { display: flex; justify-content: space-between; font-size: 12px; padding: 4px 0; border-bottom: 1px dashed #eee; }
 
-        /* 底部结算面板 */
-        .settle-area { background: #1a1a1a; color: #fff; border-radius: 20px; padding: 20px; margin-top: 20px; }
+        /* 结算 */
+        .settle-area { background: #1a1a1a; color: #fff; border-radius: 20px; padding: 20px; margin-top: 20px; margin-bottom: 30px; }
         .settle-title { font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; border-bottom: 1px solid #333; padding-bottom: 10px; }
         .settle-row { display: flex; justify-content: space-between; margin-bottom: 12px; }
-        .win { color: var(--success); font-weight: bold; }
-        .loss { color: var(--danger); font-weight: bold; }
-        .btn-reset { width: 100%; background: none; border: 1px solid #444; color: #888; border-radius: 10px; padding: 10px; margin-top: 10px; }
+        .win { color: var(--success); }
+        .loss { color: var(--danger); }
+        .btn-reset { width: 100%; background: none; border: 1px solid #444; color: #888; border-radius: 10px; padding: 12px; margin-top: 10px; font-size: 14px; }
     </style>
 </head>
 <body>
 
 <div class="card">
     <div class="header-group">
-        <input type="text" id="nameInp" class="inp-name" placeholder="输入姓名...">
+        <input type="text" id="nameInp" class="inp-name" placeholder="输入成员姓名...">
         <button class="btn-add" onclick="addUser()">添加</button>
     </div>
     <div class="rate-box">
-        结算倍率：<input type="number" id="rateInp" class="inp-rate" value="1" oninput="render()">
-        <span style="font-size:12px; color:#aaa">(总分 × 倍率)</span>
+        结算倍率：<input type="number" id="rateInp" class="inp-rate" value="1">
     </div>
 </div>
 
 <div id="userList"></div>
 
 <div class="settle-area">
-    <div class="settle-title">🏁 最终结算</div>
+    <div class="settle-title">🏁 最终结算 (倍率后)</div>
     <div id="settleList"></div>
-    <button class="btn-reset" onclick="resetAll()">清空整局数据</button>
+    <button class="btn-reset" onclick="resetAll()">清空所有记录 (重置新一局)</button>
 </div>
 
 <script>
-    let users = JSON.parse(localStorage.getItem('perfect_score_v5')) || [];
+    // 初始化：优先从本地存储读取
+    let state = JSON.parse(localStorage.getItem('ScoreTool_Data')) || {
+        users: [],
+        rate: 1
+    };
 
-    function save() {
-        localStorage.setItem('perfect_score_v5', JSON.stringify(users));
+    // 保存到本地存储
+    function syncStorage() {
+        localStorage.setItem('ScoreTool_Data', JSON.stringify(state));
         render();
     }
 
     function addUser() {
         const name = document.getElementById('nameInp').value.trim();
         if(!name) return;
-        users.push({ id: Date.now(), name, score: 0, logs: [], lastVal: 10 });
+        state.users.push({ id: Date.now(), name, score: 0, logs: [], lastVal: 10 });
         document.getElementById('nameInp').value = '';
-        save();
+        syncStorage();
     }
 
     function mod(id, isAdd) {
-        const user = users.find(u => u.id === id);
+        const user = state.users.find(u => u.id === id);
         const val = parseFloat(document.getElementById(`inp-${id}`).value) || 0;
-        
         user.lastVal = val;
         const change = isAdd ? val : -val;
         user.score += change;
-        
         user.logs.unshift({
             time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
             val: (change > 0 ? '+' : '') + change
         });
-        save();
+        syncStorage();
     }
+
+    function delUser(id) {
+        if(confirm('确定删除该成员吗？')) {
+            state.users = state.users.filter(u => u.id !== id);
+            syncStorage();
+        }
+    }
+
+    function resetAll() {
+        if(confirm('将清空所有人的分数和记录，确定吗？')) {
+            state = { users: [], rate: 1 };
+            syncStorage();
+        }
+    }
+
+    // 监听倍率变化
+    document.getElementById('rateInp').addEventListener('input', (e) => {
+        state.rate = parseFloat(e.target.value) || 1;
+        syncStorage();
+    });
 
     function toggleHist(id) {
         const content = document.getElementById(`content-${id}`);
         const link = document.getElementById(`link-${id}`);
         const isHidden = content.style.display === '' || content.style.display === 'none';
         content.style.display = isHidden ? 'block' : 'none';
-        link.innerText = isHidden ? '▲ 收起记录' : '▼ 查看流水记录';
-    }
-
-    function delUser(id) {
-        if(confirm('删除该成员？')) {
-            users = users.filter(u => u.id !== id);
-            save();
-        }
-    }
-
-    function resetAll() {
-        if(confirm('确定要清空整局吗？')) {
-            users = [];
-            save();
-        }
+        link.innerText = isHidden ? '▲ 收起明细' : '▼ 查看操作明细';
     }
 
     function render() {
-        const rate = parseFloat(document.getElementById('rateInp').value) || 1;
+        document.getElementById('rateInp').value = state.rate;
         
-        // 渲染主列表
-        document.getElementById('userList').innerHTML = users.map(u => `
+        // 渲染列表
+        document.getElementById('userList').innerHTML = state.users.map(u => `
             <div class="user-card">
                 <div class="user-header">
-                    <div class="u-info">
+                    <div>
                         <span class="u-name">${u.name}</span>
-                        <button class="btn-del" onclick="delUser(${u.id})">删除</button>
+                        <button class="btn-del" onclick="delUser(${u.id})">删除成员</button>
                     </div>
                     <div class="u-score">${u.score}</div>
                 </div>
-                
                 <div class="control-bar">
                     <button class="btn-main btn-sub" onclick="mod(${u.id}, false)">−</button>
-                    <input type="number" class="val-input" id="inp-${u.id}" value="${u.lastVal}">
+                    <input type="number" class="val-input" id="inp-${u.id}" value="${u.lastVal}" onchange="saveVal(${u.id}, this.value)">
                     <button class="btn-main btn-plus" onclick="mod(${u.id}, true)">＋</button>
                 </div>
-
-                <div class="hist-section">
-                    <a href="javascript:void(0)" class="hist-toggle" id="link-${u.id}" onclick="toggleHist(${u.id})">▼ 查看流水记录</a>
-                    <div class="hist-content" id="content-${u.id}">
-                        ${u.logs.map(l => `
-                            <div class="hist-item">
-                                <span>${l.time}</span>
-                                <span style="color:${l.val.includes('+')?'var(--success)':'var(--danger)'}">${l.val}</span>
-                            </div>
-                        `).join('') || '<div style="text-align:center;color:#ccc">无</div>'}
-                    </div>
+                <a href="javascript:void(0)" class="hist-toggle" id="link-${u.id}" onclick="toggleHist(${u.id})">▼ 查看操作明细</a>
+                <div class="hist-content" id="content-${u.id}">
+                    ${u.logs.map(l => `<div class="hist-item"><span>${l.time}</span><span class="${l.val.includes('+')?'win':'loss'}">${l.val}</span></div>`).join('') || '<div style="text-align:center;color:#ccc">暂无记录</div>'}
                 </div>
             </div>
         `).join('');
 
         // 渲染结算
-        document.getElementById('settleList').innerHTML = users.map(u => {
-            const final = (u.score * rate).toFixed(2);
-            return `
-                <div class="settle-row">
-                    <span style="overflow:hidden; text-overflow:ellipsis;">${u.name}</span>
-                    <span class="${final >= 0 ? 'win' : 'loss'}">${final >= 0 ? '+' : ''}${final}</span>
-                </div>
-            `;
-        }).join('') || '<div style="color:#666">请添加成员开始</div>';
+        document.getElementById('settleList').innerHTML = state.users.map(u => {
+            const final = (u.score * state.rate).toFixed(1);
+            return `<div class="settle-row"><span>${u.name}</span><span class="${final >= 0 ? 'win' : 'loss'}">${final >= 0 ? '+' : ''}${final}</span></div>`;
+        }).join('') || '<div style="color:#666">列表为空</div>';
+    }
+
+    function saveVal(id, val) {
+        const user = state.users.find(u => u.id === id);
+        if(user) {
+            user.lastVal = parseFloat(val) || 0;
+            localStorage.setItem('ScoreTool_Data', JSON.stringify(state));
+        }
     }
 
     render();
