@@ -3,119 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>专业记分结算系统</title>
+    <title>直观记分结算系统</title>
     <style>
-        :root { --primary: #1890ff; --danger: #ff4d4f; --success: #52c41a; --text: #262626; --bg: #f5f7fa; }
+        :root { --primary: #1890ff; --danger: #ff4d4f; --success: #52c41a; --text: #262626; --bg: #f0f2f5; }
         body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 12px; color: var(--text); -webkit-user-select: none; }
         .card { background: white; border-radius: 16px; padding: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 12px; }
         
         /* 顶部管理 */
-        .flex-row { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
-        input { border: 1px solid #d9d9d9; border-radius: 8px; padding: 10px; font-size: 16px; outline: none; }
-        .btn { border: none; border-radius: 8px; padding: 10px 16px; font-weight: bold; cursor: pointer; }
+        .flex-row { display: flex; gap: 8px; margin-bottom: 10px; }
+        input { border: 1px solid #d9d9d9; border-radius: 8px; padding: 10px; font-size: 16px; outline: none; text-align: center; }
+        .btn { border: none; border-radius: 8px; padding: 12px 16px; font-weight: bold; }
         .btn-primary { background: var(--primary); color: white; }
 
-        /* 自定义步长 */
-        .step-box { background: #e6f7ff; border-radius: 8px; padding: 10px; margin-bottom: 15px; }
-        .step-chips { display: flex; gap: 8px; margin-top: 8px; overflow-x: auto; }
-        .chip { padding: 6px 15px; background: white; border: 1px solid var(--primary); color: var(--primary); border-radius: 20px; font-size: 14px; white-space: nowrap; }
-        .chip.active { background: var(--primary); color: white; }
-
-        /* 用户专业卡片 */
+        /* 用户卡片 */
         .user-card { background: white; border-radius: 16px; margin-bottom: 12px; padding: 15px; border: 1px solid #f0f0f0; }
-        .user-header { display: flex; justify-content: space-between; border-bottom: 1px solid #f0f0f0; padding-bottom: 10px; margin-bottom: 10px; }
-        .user-name { font-size: 1.1rem; font-weight: bold; color: #141414; }
-        .user-score { font-size: 1.5rem; font-weight: 800; color: var(--primary); }
+        .user-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .user-name { font-size: 1.2rem; font-weight: bold; color: #141414; }
+        .user-score { font-size: 1.8rem; font-weight: 800; color: var(--primary); }
 
-        .control-row { display: flex; justify-content: space-between; align-items: center; gap: 15px; }
-        .main-btn { width: 60px; height: 60px; border-radius: 30px; border: none; font-size: 28px; color: white; display: flex; align-items: center; justify-content: center; transition: 0.1s; }
-        .btn-sub { background: var(--danger); }
-        .btn-add { background: var(--success); }
-        .main-btn:active { transform: scale(0.9); opacity: 0.8; }
+        /* 直观操作栏 */
+        .control-bar { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 10px; }
+        .main-btn { width: 65px; height: 50px; border-radius: 12px; border: none; font-size: 28px; color: white; display: flex; align-items: center; justify-content: center; }
+        .btn-sub { background: var(--danger); box-shadow: 0 4px 0 #cf1322; }
+        .btn-add { background: var(--success); box-shadow: 0 4px 0 #389e0d; }
+        .main-btn:active { transform: translateY(2px); box-shadow: 0 2px 0 #999; }
+        .val-input { flex: 1; height: 46px; font-size: 20px; font-weight: bold; border: 2px solid #eee; background: #fafafa; }
 
-        /* 专业记录展示 */
-        .history-list { font-size: 12px; color: #8c8c8c; height: 60px; overflow-y: auto; background: #fafafa; border-radius: 8px; padding: 5px 10px; margin-top: 10px; }
-        .history-item { display: flex; justify-content: space-between; padding: 2px 0; border-bottom: 1px dashed #eee; }
+        /* 可折叠历史 */
+        .history-wrapper { border-top: 1px solid #f5f5f5; margin-top: 10px; padding-top: 8px; }
+        .history-toggle { display: block; text-align: center; font-size: 13px; color: #8c8c8c; text-decoration: none; padding: 5px; }
+        .history-content { display: none; font-size: 12px; color: #595959; background: #fafafa; border-radius: 8px; padding: 8px; max-height: 120px; overflow-y: auto; }
+        .history-item { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dashed #eee; }
 
-        /* 结算面板 */
+        /* 底部结算 */
         .settle-bar { background: #1f1f1f; color: white; border-radius: 16px; padding: 20px; margin-top: 20px; }
-        .settle-item { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 15px; }
-        .win { color: var(--success); }
-        .loss { color: var(--danger); }
+        .settle-item { display: flex; justify-content: space-between; margin-bottom: 10px; font-size: 16px; }
+        .win { color: var(--success); font-weight: bold; }
+        .loss { color: var(--danger); font-weight: bold; }
+        .btn-reset { width: 100%; background: none; border: 1px solid #434343; color: #8c8c8c; margin-top: 15px; padding: 10px; border-radius: 8px; }
     </style>
 </head>
 <body>
 
 <div class="card">
     <div class="flex-row">
-        <input type="text" id="nameInp" style="flex:1" placeholder="成员姓名">
-        <button class="btn btn-primary" onclick="addUser()">添加</button>
+        <input type="text" id="nameInp" style="flex:1; text-align:left;" placeholder="输入成员姓名...">
+        <button class="btn btn-primary" onclick="addUser()">添加成员</button>
     </div>
-    <div class="step-box">
-        <div style="font-size:12px; color:#8c8c8c">当前加减分数值：<span id="curStepTxt" style="color:var(--primary);font-weight:bold">10</span></div>
-        <div class="step-chips" id="chips">
-            <div class="chip active" onclick="setStep(10, this)">10</div>
-            <div class="chip" onclick="setStep(20, this)">20</div>
-            <div class="chip" onclick="setStep(50, this)">50</div>
-            <div class="chip" onclick="setStep(100, this)">100</div>
-            <input type="number" id="customStep" style="width:60px; padding:4px; font-size:12px;" placeholder="自定义" oninput="setCustomStep(this.value)">
-        </div>
+    <div style="font-size: 14px; color: #8c8c8c;">
+        结算倍率：<input type="number" id="rateInp" value="1" style="width:60px; padding:5px;" oninput="render()">
     </div>
 </div>
 
 <div id="userList"></div>
 
 <div class="settle-bar">
-    <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 15px; border-bottom: 1px solid #434343; padding-bottom: 10px;">
-        🏁 结算中心
-        <span style="font-size: 12px; font-weight: normal; float: right;">倍率：<input type="number" id="rateInp" value="1" style="width:40px; background:#333; color:white; border:none; border-radius:4px; text-align:center;" oninput="render()"></span>
+    <div style="font-size: 1.1rem; font-weight: bold; margin-bottom: 15px; border-bottom: 1px solid #434343; padding-bottom: 10px;">
+        🏁 结算面板
     </div>
     <div id="settleList"></div>
-    <button onclick="resetAll()" style="width:100%; background:none; border:1px solid #434343; color:#8c8c8c; margin-top:15px; padding:8px; border-radius:8px;">清除数据重新开局</button>
+    <button class="btn-reset" onclick="resetAll()">清空整局记录</button>
 </div>
 
 <script>
-    let users = JSON.parse(localStorage.getItem('pro_score_v3')) || [];
-    let currentStep = 10;
+    let users = JSON.parse(localStorage.getItem('visual_score_v4')) || [];
 
     function save() {
-        localStorage.setItem('pro_score_v3', JSON.stringify(users));
+        localStorage.setItem('visual_score_v4', JSON.stringify(users));
         render();
-    }
-
-    function setStep(val, el) {
-        currentStep = parseFloat(val);
-        document.getElementById('curStepTxt').innerText = currentStep;
-        document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
-        if(el) el.classList.add('active');
-    }
-
-    function setCustomStep(val) {
-        if(val) setStep(val, null);
     }
 
     function addUser() {
         const name = document.getElementById('nameInp').value.trim();
         if(!name) return;
-        users.push({ id: Date.now(), name, score: 0, logs: [] });
+        users.push({ id: Date.now(), name, score: 0, logs: [], lastInp: 10 });
         document.getElementById('nameInp').value = '';
         save();
     }
 
-    function mod(id, type) {
+    function mod(id, isAdd) {
         const user = users.find(u => u.id === id);
-        const val = type === 'add' ? currentStep : -currentStep;
-        user.score += val;
+        const inpBox = document.getElementById(`inp-${id}`);
+        const val = parseFloat(inpBox.value) || 0;
+        
+        user.lastInp = val; // 记录上次输入的数值
+        const change = isAdd ? val : -val;
+        user.score += change;
+        
         user.logs.unshift({
             time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}),
-            val: (val > 0 ? '+' : '') + val
+            val: (change > 0 ? '+' : '') + change
         });
-        if(user.logs.length > 20) user.logs.pop();
         save();
     }
 
+    function toggleHistory(id) {
+        const content = document.getElementById(`hist-${id}`);
+        const link = document.getElementById(`link-${id}`);
+        if(content.style.display === 'block') {
+            content.style.display = 'none';
+            link.innerText = '▼ 查看历史明细';
+        } else {
+            content.style.display = 'block';
+            link.innerText = '▲ 收起明细';
+        }
+    }
+
+    function delUser(id) {
+        if(confirm('删除该成员？')) {
+            users = users.filter(u => u.id !== id);
+            save();
+        }
+    }
+
     function resetAll() {
-        if(confirm('重置将清空所有历史和结算数据，确定吗？')) {
+        if(confirm('确定要清空所有数据吗？')) {
             users = [];
             save();
         }
@@ -124,39 +126,47 @@
     function render() {
         const rate = parseFloat(document.getElementById('rateInp').value) || 1;
         
-        // 渲染主列表
+        // 列表
         document.getElementById('userList').innerHTML = users.map(u => `
             <div class="user-card">
                 <div class="user-header">
-                    <span class="user-name">${u.name}</span>
+                    <div>
+                        <span class="user-name">${u.name}</span>
+                        <button style="border:none; background:none; color:#ccc; font-size:12px; margin-left:10px" onclick="delUser(${u.id})">删除</button>
+                    </div>
                     <span class="user-score">${u.score}</span>
                 </div>
-                <div class="control-row">
-                    <button class="main-btn btn-sub" onclick="mod(${u.id}, 'sub')">－</button>
-                    <div style="flex:1; text-align:center; color:#8c8c8c; font-size:12px;">点击按钮加减 ${currentStep}</div>
-                    <button class="main-btn btn-add" onclick="mod(${u.id}, 'add')">＋</button>
+                
+                <div class="control-bar">
+                    <button class="main-btn btn-sub" onclick="mod(${u.id}, false)">−</button>
+                    <input type="number" class="val-input" id="inp-${u.id}" value="${u.lastInp}">
+                    <button class="main-btn btn-add" onclick="mod(${u.id}, true)">＋</button>
                 </div>
-                <div class="history-list">
-                    ${u.logs.map(l => `
-                        <div class="history-item">
-                            <span>${l.time} 操作记录</span>
-                            <span style="color:${l.val.includes('+')?'var(--success)':'var(--danger)'}">${l.val}</span>
-                        </div>
-                    `).join('') || '<div style="text-align:center;padding-top:10px">暂无流水记录</div>'}
+
+                <div class="history-wrapper">
+                    <a href="javascript:void(0)" class="history-toggle" id="link-${u.id}" onclick="toggleHistory(${u.id})">▼ 查看历史明细</a>
+                    <div class="history-content" id="hist-${u.id}">
+                        ${u.logs.map(l => `
+                            <div class="history-item">
+                                <span>${l.time} 变动</span>
+                                <span style="color:${l.val.includes('+')?'var(--success)':'var(--danger)'}">${l.val}</span>
+                            </div>
+                        `).join('') || '<div style="text-align:center;color:#ccc">暂无记录</div>'}
+                    </div>
                 </div>
             </div>
         `).join('');
 
-        // 渲染结算
+        // 结算
         document.getElementById('settleList').innerHTML = users.map(u => {
-            const final = (u.score * rate).toFixed(2);
+            const final = (u.score * rate).toFixed(1);
             return `
                 <div class="settle-item">
                     <span>${u.name}</span>
                     <span class="${final >= 0 ? 'win' : 'loss'}">${final >= 0 ? '＋' : ''}${final}</span>
                 </div>
             `;
-        }).join('') || '<div style="color:#434343">暂无结算数据</div>';
+        }).join('') || '<div style="color:#666; font-size:14px">请先添加成员</div>';
     }
 
     render();
