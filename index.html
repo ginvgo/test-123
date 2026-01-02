@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>手机超级记分器</title>
+    <style>
+        :root { --primary: #007bff; --danger: #ef4444; --success: #22c55e; --gray: #64748b; }
+        body { font-family: -apple-system, system-ui, sans-serif; background: #f8fafc; margin: 0; padding: 12px; color: #1e293b; user-select: none; }
+        .card { background: white; border-radius: 16px; padding: 16px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1); margin-bottom: 12px; }
+        h2 { margin: 0 0 12px 0; font-size: 1rem; color: var(--gray); display: flex; justify-content: space-between; align-items: center; }
+        
+        /* 输入区 */
+        .add-user-box { display: flex; gap: 8px; }
+        input { flex: 1; padding: 12px; border: 1px solid #e2e8f0; border-radius: 10px; font-size: 16px; outline: none; }
+        button { padding: 12px 20px; border: none; border-radius: 10px; font-weight: bold; active: opacity 0.7; transition: 0.1s; font-size: 14px; }
+        .btn-main { background: var(--primary); color: white; }
+
+        /* 记分列表 */
+        .user-item { border-bottom: 1px solid #f1f5f9; padding: 15px 0; }
+        .user-item:last-child { border: none; }
+        .user-info { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .user-name { font-size: 1.1rem; font-weight: bold; }
+        .score-display { text-align: right; }
+        .total-val { font-size: 1.3rem; color: var(--primary); font-weight: 800; }
+        .result-val { font-size: 0.9rem; color: var(--success); margin-left: 5px; }
+
+        /* 快捷按钮 */
+        .action-row { display: flex; gap: 6px; align-items: center; }
+        .btn-sm { padding: 8px 0; flex: 1; background: #f1f5f9; color: #334155; font-size: 14px; }
+        .btn-plus { background: #dcfce7; color: #166534; }
+        .btn-minus { background: #fee2e2; color: #991b1b; }
+        .input-mini { width: 50px; flex: none; text-align: center; padding: 8px 0; }
+        .btn-del { padding: 4px 8px; background: none; color: #cbd5e1; font-size: 12px; }
+
+        /* 历史记录 */
+        .history-box { max-height: 150px; overflow-y: auto; font-size: 0.85rem; color: #64748b; }
+        .log-item { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px dashed #e2e8f0; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <div class="add-user-box">
+        <input type="text" id="nameInp" placeholder="输入姓名...">
+        <button class="btn-main" id="addBtn">添加成员</button>
+    </div>
+    <div style="margin-top: 10px; display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 14px; color: #64748b;">设置倍率:</span>
+        <input type="number" id="rateInp" value="1" style="max-width: 80px; padding: 5px 10px;">
+    </div>
+</div>
+
+<div class="card">
+    <h2>记分板 <span id="userCount" style="font-weight: normal; font-size: 12px;">0 人</span></h2>
+    <div id="list"></div>
+</div>
+
+<div class="card">
+    <h2>历史记录</h2>
+    <div id="logs" class="history-box"></div>
+    <button style="width: 100%; margin-top: 15px; background: #fff; border: 1px solid #fecaca; color: #ef4444;" id="resetBtn">清空全部数据</button>
+</div>
+
+<script>
+    let state = JSON.parse(localStorage.getItem('score_pro_data')) || { users: [], logs: [] };
+
+    function save() {
+        localStorage.setItem('score_pro_data', JSON.stringify(state));
+        render();
+    }
+
+    // 添加用户
+    document.getElementById('addBtn').onclick = () => {
+        const name = document.getElementById('nameInp').value.trim();
+        if(!name) return;
+        state.users.push({ id: Date.now(), name, score: 0 });
+        document.getElementById('nameInp').value = '';
+        save();
+    };
+
+    // 修改分数核心函数
+    window.mod = (id, val) => {
+        const user = state.users.find(u => u.id === id);
+        if(!user) return;
+        user.score += val;
+        state.logs.unshift({
+            name: user.name,
+            val: (val > 0 ? '+' : '') + val,
+            time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+        });
+        if(state.logs.length > 50) state.logs.pop(); // 只保留50条
+        save();
+    };
+
+    // 手输分数
+    window.manual = (id) => {
+        const val = parseFloat(document.getElementById(`m-${id}`).value);
+        if(isNaN(val)) return;
+        mod(id, val);
+        document.getElementById(`m-${id}`).value = '';
+    }
+
+    // 删除用户
+    window.delUser = (id) => {
+        if(confirm('确定删除该成员吗？分数也将清除')) {
+            state.users = state.users.filter(u => u.id !== id);
+            save();
+        }
+    };
+
+    document.getElementById('resetBtn').onclick = () => {
+        if(confirm('彻底重置所有数据？')) {
+            state = { users: [], logs: [] };
+            save();
+        }
+    }
+
+    function render() {
+        const rate = parseFloat(document.getElementById('rateInp').value) || 1;
+        document.getElementById('userCount').innerText = state.users.length + ' 人';
+        
+        // 渲染列表
+        document.getElementById('list').innerHTML = state.users.map(u => `
+            <div class="user-item">
+                <div class="user-info">
+                    <div class="user-name">${u.name} <button class="btn-del" onclick="delUser(${u.id})">删除</button></div>
+                    <div class="score-display">
+                        <span class="total-val">${u.score}</span>
+                        <span class="result-val">≈ ${(u.score * rate).toFixed(1)}</span>
+                    </div>
+                </div>
+                <div class="action-row">
+                    <button class="btn-sm btn-minus" onclick="mod(${u.id},-10)">-10</button>
+                    <button class="btn-sm btn-minus" onclick="mod(${u.id},-1)">-1</button>
+                    <input type="number" class="input-mini" id="m-${u.id}" placeholder="自定">
+                    <button class="btn-sm" style="background:#e2e8f0" onclick="manual(${u.id})">OK</button>
+                    <button class="btn-sm btn-plus" onclick="mod(${u.id},1)">+1</button>
+                    <button class="btn-sm btn-plus" onclick="mod(${u.id},10)">+10</button>
+                </div>
+            </div>
+        `).join('');
+
+        // 渲染日志
+        document.getElementById('logs').innerHTML = state.logs.length ? state.logs.map(l => `
+            <div class="log-item">
+                <span>${l.time} <b>${l.name}</b></span>
+                <span style="color:${l.val.startsWith('-')?'#ef4444':'#22c55e'}">${l.val}</span>
+            </div>
+        `).join('') : '<div style="text-align:center;color:#ccc;padding:10px;">暂无变动</div>';
+    }
+
+    document.getElementById('rateInp').oninput = render;
+    render();
+</script>
+</body>
+</html>
