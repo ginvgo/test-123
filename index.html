@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>专业记分器(带历史)</title>
+    <style>
+        :root { --primary: #007bff; --danger: #dc3545; --success: #28a745; }
+        body { font-family: -apple-system, sans-serif; background: #f0f2f5; margin: 0; padding: 15px; color: #333; }
+        .card { background: white; border-radius: 12px; padding: 15px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); margin-bottom: 15px; }
+        h2 { margin: 0 0 12px 0; font-size: 1.1rem; border-left: 4px solid var(--primary); padding-left: 8px; }
+        
+        .input-group { display: flex; gap: 8px; margin-bottom: 10px; }
+        input { flex: 1; padding: 12px; border: 1px solid #ddd; border-radius: 8px; font-size: 16px; outline: none; }
+        button { padding: 10px 18px; background: var(--primary); color: white; border: none; border-radius: 8px; font-weight: bold; }
+        
+        table { width: 100%; border-collapse: collapse; }
+        th { background: #f8f9fa; color: #666; font-size: 0.85rem; padding: 10px; text-align: left; }
+        td { padding: 12px 10px; border-bottom: 1px solid #eee; }
+        
+        .score-input { width: 60px; border: 1px solid #ccc; }
+        .total-font { font-weight: bold; color: var(--primary); font-size: 1.1rem; }
+        .final-font { font-weight: bold; color: var(--success); }
+
+        /* 历史记录样式 */
+        .history-list { max-height: 200px; overflow-y: auto; font-size: 0.9rem; }
+        .history-item { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px dashed #eee; align-items: center; }
+        .btn-del { background: none; color: var(--danger); border: 1px solid var(--danger); padding: 2px 6px; font-size: 0.75rem; border-radius: 4px; }
+        
+        .btn-clear { background: var(--danger); width: 100%; margin-top: 10px; opacity: 0.8; }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <h2>1. 成员与倍率</h2>
+    <div class="input-group">
+        <input type="text" id="userName" placeholder="添加新成员姓名...">
+        <button onclick="addUser()">添加</button>
+    </div>
+    <div class="input-group">
+        <span style="line-height: 45px; font-size: 0.9rem; color: #666;">全局倍率：</span>
+        <input type="number" id="multiplier" value="1" oninput="renderAll()" placeholder="设置倍率">
+    </div>
+</div>
+
+<div class="card">
+    <h2>2. 记分板</h2>
+    <table id="scoreTable">
+        <thead>
+            <tr>
+                <th>姓名</th>
+                <th>输入分数</th>
+                <th>总计</th>
+                <th>结果</th>
+            </tr>
+        </thead>
+        <tbody id="userList"></tbody>
+    </table>
+</div>
+
+<div class="card">
+    <h2>3. 历史明细 (可撤销)</h2>
+    <div id="historyList" class="history-list">
+        <div style="color: #999; text-align: center;">暂无记录</div>
+    </div>
+    <button class="btn-clear" onclick="clearAll()">清空所有数据</button>
+</div>
+
+<script>
+    // 数据结构：users = [{name: '张三', score: 0}]; logs = [{userIdx: 0, val: 10, time: ''}]
+    let data = JSON.parse(localStorage.getItem('scoreAppData')) || { users: [], logs: [] };
+
+    function save() {
+        localStorage.setItem('scoreAppData', JSON.stringify(data));
+    }
+
+    function addUser() {
+        const input = document.getElementById('userName');
+        if (!input.value.trim()) return;
+        data.users.push({ name: input.value, score: 0 });
+        input.value = '';
+        save();
+        renderAll();
+    }
+
+    function addScore(index) {
+        const input = document.getElementById(`input-${index}`);
+        const val = parseFloat(input.value);
+        if (isNaN(val)) return;
+
+        // 更新用户分数
+        data.users[index].score += val;
+        // 记录历史
+        data.logs.unshift({
+            userIdx: index,
+            userName: data.users[index].name,
+            val: val,
+            time: new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})
+        });
+
+        input.value = '';
+        save();
+        renderAll();
+    }
+
+    function deleteLog(logIndex) {
+        const log = data.logs[logIndex];
+        // 找到对应用户并减去分数
+        const user = data.users.find(u => u.name === log.userName);
+        if (user) {
+            user.score -= log.val;
+        }
+        // 删除该条记录
+        data.logs.splice(logIndex, 1);
+        save();
+        renderAll();
+    }
+
+    function clearAll() {
+        if(confirm('确定要重置所有成员、分数和历史记录吗？')) {
+            data = { users: [], logs: [] };
+            save();
+            renderAll();
+        }
+    }
+
+    function renderAll() {
+        const list = document.getElementById('userList');
+        const historyBox = document.getElementById('historyList');
+        const rate = parseFloat(document.getElementById('multiplier').value) || 1;
+        
+        // 渲染列表
+        list.innerHTML = '';
+        data.users.forEach((user, i) => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td><b>${user.name}</b></td>
+                <td>
+                    <div class="input-group" style="margin-bottom:0">
+                        <input type="number" class="score-input" id="input-${i}" placeholder="分">
+                        <button onclick="addScore(${i})" style="padding:5px 10px">+</button>
+                    </div>
+                </td>
+                <td class="total-font">${user.score}</td>
+                <td class="final-font">${(user.score * rate).toFixed(1)}</td>
+            `;
+            list.appendChild(row);
+        });
+
+        // 渲染历史
+        if (data.logs.length === 0) {
+            historyBox.innerHTML = '<div style="color: #999; text-align: center;">暂无记录</div>';
+        } else {
+            historyBox.innerHTML = data.logs.map((log, i) => `
+                <div class="history-item">
+                    <span>[${log.time}] <b>${log.userName}</b> ${log.val > 0 ? '+' : ''}${log.val}</span>
+                    <button class="btn-del" onclick="deleteLog(${i})">撤销</button>
+                </div>
+            `).join('');
+        }
+    }
+
+    renderAll();
+</script>
+
+</body>
+</html>
