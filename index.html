@@ -3,99 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>明细记分助手</title>
+    <title>极速记分器</title>
     <style>
-        :root { --primary: #007bff; --danger: #ff4d4f; --success: #52c41a; --bg: #f0f2f5; }
-        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 12px; }
-        .card { background: white; border-radius: 12px; padding: 16px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); margin-bottom: 12px; }
+        :root { --primary: #007bff; --danger: #ff4d4f; --success: #52c41a; --bg: #f4f7f9; }
+        body { font-family: -apple-system, sans-serif; background: var(--bg); margin: 0; padding: 12px; touch-action: manipulation; }
+        .card { background: white; border-radius: 16px; padding: 16px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 12px; }
         
-        /* 顶部配置 */
-        .config-row { display: flex; gap: 10px; margin-bottom: 10px; }
-        input { border: 1px solid #d9d9d9; border-radius: 6px; padding: 10px; font-size: 16px; outline: none; }
-        .btn { border: none; border-radius: 6px; font-weight: bold; cursor: pointer; padding: 10px; }
-        .btn-add { background: var(--primary); color: white; flex-shrink: 0; }
+        /* 顶部控制面板 */
+        .top-panel { display: flex; flex-direction: column; gap: 10px; }
+        .row { display: flex; gap: 8px; align-items: center; }
+        input { border: 1px solid #ddd; border-radius: 8px; padding: 10px; font-size: 16px; outline: none; }
+        
+        /* 步长切换器 */
+        .step-selector { display: flex; background: #eee; border-radius: 8px; padding: 3px; margin-top: 5px; }
+        .step-btn { flex: 1; border: none; background: none; padding: 6px; font-size: 12px; border-radius: 6px; cursor: pointer; }
+        .step-btn.active { background: white; box-shadow: 0 2px 5px rgba(0,0,0,0.1); font-weight: bold; color: var(--primary); }
 
-        /* 用户区块 */
-        .user-card { border: 1px solid #f0f0f0; border-radius: 10px; margin-bottom: 15px; overflow: hidden; border-left: 5px solid var(--primary); }
-        .user-header { background: #fafafa; padding: 12px; display: flex; justify-content: space-between; align-items: center; }
-        .user-name { font-size: 1.1rem; font-weight: bold; }
-        .user-total { text-align: right; }
-        .total-num { font-size: 1.4rem; color: var(--primary); font-weight: 800; display: block; }
-        .final-num { font-size: 0.85rem; color: var(--success); }
+        /* 用户卡片 */
+        .user-card { background: white; border-radius: 16px; margin-bottom: 15px; padding: 15px; border: 1px solid #eef; }
+        .user-main { display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; }
+        
+        /* 核心加减按钮 */
+        .ctrl-btn { width: 50px; height: 50px; border-radius: 25px; border: none; font-size: 24px; font-weight: bold; color: white; display: flex; align-items: center; justify-content: center; active: opacity 0.6; }
+        .btn-minus { background: var(--danger); box-shadow: 0 4px 0 #d9363e; }
+        .btn-plus { background: var(--success); box-shadow: 0 4px 0 #389e0d; }
+        .btn-minus:active, .btn-plus:active { transform: translateY(2px); box-shadow: 0 2px 0 #999; }
 
-        /* 操作按钮 */
-        .btn-group { display: grid; grid-template-columns: repeat(4, 1fr) 60px; gap: 5px; padding: 10px; background: white; }
-        .btn-act { background: #f5f5f5; font-size: 13px; padding: 8px 0; border-radius: 4px; border: 1px solid #eee; }
-        .btn-plus { color: var(--success); background: #f6ffed; border-color: #b7eb8f; }
-        .btn-minus { color: var(--danger); background: #fff1f0; border-color: #ffa39e; }
-        .inp-mini { width: 100%; box-sizing: border-box; text-align: center; padding: 6px; }
+        .score-info { text-align: center; flex: 1; }
+        .u-name { font-size: 1.2rem; font-weight: bold; display: block; margin-bottom: 2px; }
+        .u-score { font-size: 1.8rem; font-weight: 800; color: var(--primary); }
 
-        /* 个人明细 */
-        .user-logs { padding: 0 12px 10px; background: white; max-height: 80px; overflow-y: auto; display: flex; flex-wrap: wrap; gap: 6px; }
-        .log-tag { font-size: 0.75rem; padding: 2px 6px; border-radius: 4px; background: #f0f0f0; color: #666; }
-        .log-plus { background: #f6ffed; color: var(--success); }
-        .log-minus { background: #fff1f0; color: var(--danger); }
-
-        .btn-del-user { color: #ccc; font-size: 0.8rem; background: none; border: none; text-decoration: underline; }
+        /* 底部明细 */
+        .detail-row { display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #f0f0f0; pt: 10px; padding-top: 10px; }
+        .logs { display: flex; gap: 4px; overflow-x: auto; flex: 1; margin-right: 10px; }
+        .tag { font-size: 11px; padding: 2px 6px; border-radius: 4px; background: #f0f0f0; white-space: nowrap; }
+        
+        .btn-del { font-size: 12px; color: #999; background: none; border: none; padding: 0; }
     </style>
 </head>
 <body>
 
-<div class="card">
-    <div class="config-row">
-        <input type="text" id="nameInp" style="flex:1" placeholder="新成员姓名">
-        <button class="btn btn-add" onclick="addUser()">添加</button>
+<div class="card top-panel">
+    <div class="row">
+        <input type="text" id="nameInp" style="flex:1" placeholder="输入成员姓名...">
+        <button onclick="addUser()" style="background:var(--primary); color:white; border:none; padding:10px 20px; border-radius:8px; font-weight:bold;">添加</button>
     </div>
-    <div style="display:flex; align-items:center; font-size:14px; color:#666">
-        倍率：<input type="number" id="rateInp" value="1" style="width:60px; margin-right:15px" oninput="render()">
-        <button class="btn-del-user" onclick="resetAll()">清空整局</button>
+    <div class="row">
+        <span style="font-size:14px; color:#666">单次点击加减量：</span>
+        <div class="step-selector" id="stepSelector">
+            <button class="step-btn active" onclick="setStep(1)">1</button>
+            <button class="step-btn" onclick="setStep(5)">5</button>
+            <button class="step-btn" onclick="setStep(10)">10</button>
+            <button class="step-btn" onclick="setStep(20)">20</button>
+        </div>
+    </div>
+    <div class="row" style="margin-top:5px; justify-content: space-between;">
+        <span style="font-size:14px; color:#666">计算倍率: <input type="number" id="rateInp" value="1" style="width:50px; padding:4px;" oninput="render()"></span>
+        <button onclick="resetAll()" style="color:var(--danger); background:none; border:none; font-size:13px;">清空整局记录</button>
     </div>
 </div>
 
 <div id="userList"></div>
 
 <script>
-    let users = JSON.parse(localStorage.getItem('clear_score_data')) || [];
+    let users = JSON.parse(localStorage.getItem('speed_score_db')) || [];
+    let currentStep = 1;
 
     function save() {
-        localStorage.setItem('clear_score_data', JSON.stringify(users));
+        localStorage.setItem('speed_score_db', JSON.stringify(users));
         render();
+    }
+
+    function setStep(s) {
+        currentStep = s;
+        const btns = document.querySelectorAll('.step-btn');
+        btns.forEach(b => b.classList.remove('active'));
+        event.target.classList.add('active');
     }
 
     function addUser() {
         const name = document.getElementById('nameInp').value.trim();
         if(!name) return;
-        users.push({ id: Date.now(), name: name, score: 0, history: [] });
+        users.push({ id: Date.now(), name, score: 0, history: [] });
         document.getElementById('nameInp').value = '';
         save();
     }
 
-    function modScore(userId, val) {
-        const user = users.find(u => u.id === userId);
+    function mod(id, isPlus) {
+        const user = users.find(u => u.id === id);
         if(!user) return;
+        const val = isPlus ? currentStep : -currentStep;
         user.score += val;
-        user.history.unshift({ val: val, time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) });
-        if(user.history.length > 10) user.history.pop(); // 每个成员只显最近10条
+        user.history.unshift({ val, time: new Date().toLocaleTimeString() });
+        if(user.history.length > 8) user.history.pop();
         save();
     }
 
-    function manualScore(userId) {
-        const inp = document.getElementById(`inp-${userId}`);
-        const val = parseFloat(inp.value);
-        if(isNaN(val)) return;
-        modScore(userId, val);
-        inp.value = '';
-    }
-
-    function delUser(userId) {
-        if(confirm('删除此人及其所有记录？')) {
-            users = users.filter(u => u.id !== userId);
+    function delUser(id) {
+        if(confirm('删除该成员？')) {
+            users = users.filter(u => u.id !== id);
             save();
         }
     }
 
     function resetAll() {
-        if(confirm('确定全部清空重新开始吗？')) {
+        if(confirm('确定要清空整局数据吗？')) {
             users = [];
             save();
         }
@@ -106,31 +118,20 @@
         const container = document.getElementById('userList');
         container.innerHTML = users.map(u => `
             <div class="user-card">
-                <div class="user-header">
-                    <div>
-                        <span class="user-name">${u.name}</span><br>
-                        <button class="btn-del-user" onclick="delUser(${u.id})">删除成员</button>
+                <div class="user-main">
+                    <button class="ctrl-btn btn-minus" onclick="mod(${u.id}, false)">−</button>
+                    <div class="score-info">
+                        <span class="u-name">${u.name}</span>
+                        <span class="u-score">${u.score}</span>
+                        <div style="font-size:12px; color:var(--success)">结算: ${(u.score * rate).toFixed(1)}</div>
                     </div>
-                    <div class="user-total">
-                        <span class="total-num">${u.score}</span>
-                        <span class="final-num">最终: ${(u.score * rate).toFixed(1)}</span>
+                    <button class="ctrl-btn btn-plus" onclick="mod(${u.id}, true)">＋</button>
+                </div>
+                <div class="detail-row">
+                    <div class="logs">
+                        ${u.history.map(h => `<span class="tag" style="color:${h.val>0?'var(--success)':'var(--danger)'}">${h.val>0?'+':''}${h.val}</span>`).join('')}
                     </div>
-                </div>
-                
-                <div class="btn-group">
-                    <button class="btn btn-act btn-minus" onclick="modScore(${u.id},-10)">-10</button>
-                    <button class="btn btn-act btn-minus" onclick="modScore(${u.id},-1)">-1</button>
-                    <button class="btn btn-act btn-plus" onclick="modScore(${u.id},1)">+1</button>
-                    <button class="btn btn-act btn-plus" onclick="modScore(${u.id},10)">+10</button>
-                    <input type="number" class="inp-mini" id="inp-${u.id}" placeholder="自定" onchange="manualScore(${u.id})">
-                </div>
-
-                <div class="user-logs">
-                    ${u.history.length ? u.history.map(h => `
-                        <span class="log-tag ${h.val > 0 ? 'log-plus' : 'log-minus'}">
-                            ${h.val > 0 ? '+' : ''}${h.val}
-                        </span>
-                    `).join('') : '<span style="color:#ccc;font-size:12px">暂无明细</span>'}
+                    <button class="btn-del" onclick="delUser(${u.id})">删除</button>
                 </div>
             </div>
         `).join('');
