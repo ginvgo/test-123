@@ -3,51 +3,51 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>专业记分 Pro</title>
+    <title>多彩专业记分 Pro</title>
     <style>
         :root { --primary: #1890ff; --danger: #ff4d4f; --success: #52c41a; --text: #262626; --bg: #f2f4f7; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); margin: 0; padding: 12px; color: var(--text); overflow-x: hidden; }
-        .card { background: white; border-radius: 16px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 12px; }
         
-        /* 顶部 */
+        /* 顶部管理卡片 */
+        .card { background: white; border-radius: 16px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 12px; }
         .header-group { display: flex; gap: 8px; }
         .inp-name { flex: 1; border: 1px solid #d9d9d9; border-radius: 10px; padding: 10px; font-size: 16px; min-width: 0; }
         .btn-add { background: var(--primary); color: white; border: none; border-radius: 10px; padding: 0 16px; font-weight: bold; white-space: nowrap; }
         
-        /* 用户卡片 */
-        .user-card { background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px; border: 1px solid #f0f0f0; }
+        /* 成员卡片设计 */
+        .user-card { 
+            background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px; 
+            border: 1px solid #f0f0f0; position: relative; overflow: hidden;
+            border-left: 6px solid var(--theme-color); /* 动态主题色 */
+        }
         .user-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
-        .u-name { font-size: 1.1rem; font-weight: bold; max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .u-score { font-size: 1.8rem; font-weight: 800; color: var(--primary); }
+        .u-name { font-size: 1.1rem; font-weight: bold; color: var(--theme-color); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .u-score { font-size: 1.8rem; font-weight: 800; color: var(--theme-color); }
 
         /* 操作栏 */
-        .control-bar { display: flex; align-items: center; gap: 8px; width: 100%; margin-bottom: 12px; }
+        .control-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
         .btn-main { width: 55px; height: 50px; border: none; border-radius: 12px; font-size: 24px; color: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .btn-sub { background: var(--danger); box-shadow: 0 3px 0 #cf1322; }
         .btn-plus { background: var(--success); box-shadow: 0 3px 0 #389e0d; }
         .btn-main:active { transform: translateY(2px); box-shadow: none; }
         .val-input { flex: 1; min-width: 0; height: 50px; font-size: 20px; font-weight: bold; border: 2px solid #f0f0f0; background: #fafafa; border-radius: 12px; text-align: center; }
 
-        /* 快捷数字面板 */
+        /* 快捷数字 */
         .quick-nums { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
         .quick-nums::-webkit-scrollbar { display: none; }
-        .num-chip { 
-            padding: 6px 12px; background: #f0f2f5; border-radius: 20px; font-size: 13px; 
-            color: #595959; flex-shrink: 0; border: 1px solid #e8e8e8;
-        }
-        .num-chip:active { background: var(--primary); color: white; }
+        .num-chip { padding: 6px 12px; background: #f0f2f5; border-radius: 20px; font-size: 13px; color: #595959; flex-shrink: 0; border: 1px solid #e8e8e8; }
+        .num-chip:active { background: var(--theme-color); color: white; border-color: var(--theme-color); }
 
         /* 历史记录 */
         .hist-toggle { display: block; text-align: center; font-size: 12px; color: #bfbfbf; padding: 12px 0 0; text-decoration: none; }
         .hist-content { display: none; background: #fafafa; border-radius: 10px; padding: 8px; margin-top: 10px; max-height: 150px; overflow-y: auto; }
         .hist-item { display: flex; justify-content: space-between; align-items: center; font-size: 12px; padding: 6px 0; border-bottom: 1px dashed #eee; }
-        .btn-revoke { color: var(--danger); font-size: 11px; border: 1px solid var(--danger); border-radius: 4px; padding: 2px 4px; margin-left: 8px; }
+        .btn-revoke { color: var(--danger); font-size: 11px; border: 1px solid var(--danger); border-radius: 4px; padding: 2px 4px; }
 
-        /* 结算 */
+        /* 结算区 */
         .settle-area { background: #1a1a1a; color: #fff; border-radius: 20px; padding: 20px; margin-top: 20px; margin-bottom: 40px; }
-        .settle-row { display: flex; justify-content: space-between; margin-bottom: 10px; }
-        .win { color: var(--success); } .loss { color: var(--danger); }
+        .settle-row { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px; }
         .btn-reset { width: 100%; background: none; border: 1px solid #444; color: #888; border-radius: 10px; padding: 12px; margin-top: 15px; }
     </style>
 </head>
@@ -55,36 +55,49 @@
 
 <div class="card">
     <div class="header-group">
-        <input type="text" id="nameInp" class="inp-name" placeholder="输入姓名...">
+        <input type="text" id="nameInp" class="inp-name" placeholder="输入成员姓名...">
         <button class="btn-add" onclick="addUser()">添加</button>
     </div>
-    <div style="margin-top:12px; font-size:14px; color:#666;">
-        倍率：<input type="number" id="rateInp" style="width:50px; text-align:center;" value="1">
-        <span style="float:right; color:#ccc; font-size:12px;" onclick="resetAll()">重置新局</span>
+    <div style="margin-top:12px; font-size:14px; color:#666; display:flex; justify-content: space-between; align-items:center;">
+        <span>结算倍率：<input type="number" id="rateInp" style="width:50px; text-align:center; border:1px solid #ddd; border-radius:4px;" value="1"></span>
+        <span style="color:var(--danger); font-size:12px;" onclick="resetAll()">清空重置</span>
     </div>
 </div>
 
 <div id="userList"></div>
 
 <div class="settle-area">
-    <div style="font-weight:bold; margin-bottom:15px; border-bottom:1px solid #333; padding-bottom:8px;">🏁 结算流水</div>
+    <div style="font-weight:bold; margin-bottom:15px; border-bottom:1px solid #444; padding-bottom:8px;">🏁 结算中心</div>
     <div id="settleList"></div>
-    <button class="btn-reset" onclick="resetAll()">清空所有数据</button>
+    <button class="btn-reset" onclick="resetAll()">删除记录开始新局</button>
 </div>
 
 <script>
-    let state = JSON.parse(localStorage.getItem('ScorePro_v6')) || { users: [], rate: 1 };
-    const quickValues = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 50];
+    // 预设颜色库
+    const colors = [
+        '#1890ff', '#f5222d', '#52c41a', '#faad14', '#722ed1', 
+        '#13c2c2', '#eb2f96', '#fa8c16', '#a0d911', '#2f54eb'
+    ];
+
+    let state = JSON.parse(localStorage.getItem('ScorePro_Color_v7')) || { users: [], rate: 1 };
 
     function sync() {
-        localStorage.setItem('ScorePro_v6', JSON.stringify(state));
+        localStorage.setItem('ScorePro_Color_v7', JSON.stringify(state));
         render();
     }
 
     function addUser() {
         const name = document.getElementById('nameInp').value.trim();
         if(!name) return;
-        state.users.push({ id: Date.now(), name, score: 0, logs: [], lastVal: 10 });
+        const colorIdx = state.users.length % colors.length;
+        state.users.push({ 
+            id: Date.now(), 
+            name, 
+            score: 0, 
+            logs: [], 
+            lastVal: 10,
+            color: colors[colorIdx] 
+        });
         document.getElementById('nameInp').value = '';
         sync();
     }
@@ -100,22 +113,21 @@
     }
 
     function revoke(userId, logId) {
-        if(!confirm('确定撤销这笔记录吗？分数将自动回退。')) return;
+        if(!confirm('撤销这笔记录？')) return;
         const user = state.users.find(u => u.id === userId);
         const logIndex = user.logs.findIndex(l => l.id === logId);
         if (logIndex > -1) {
-            user.score -= user.logs[logIndex].val; // 回退分数
-            user.logs.splice(logIndex, 1); // 删除记录
+            user.score -= user.logs[logIndex].val;
+            user.logs.splice(logIndex, 1);
             sync();
         }
     }
 
     function setQuickVal(userId, val) {
-        const inp = document.getElementById(`inp-${userId}`);
-        inp.value = val;
         const user = state.users.find(u => u.id === userId);
         user.lastVal = val;
-        localStorage.setItem('ScorePro_v6', JSON.stringify(state));
+        document.getElementById(`inp-${userId}`).value = val;
+        localStorage.setItem('ScorePro_Color_v7', JSON.stringify(state));
     }
 
     function delUser(id) {
@@ -144,40 +156,47 @@
 
     function render() {
         document.getElementById('rateInp').value = state.rate;
+        const quickValues = [1, 2, 3, 5, 10, 20, 50, 100];
+
         document.getElementById('userList').innerHTML = state.users.map(u => `
-            <div class="user-card">
+            <div class="user-card" style="--theme-color: ${u.color}">
                 <div class="user-header">
                     <div>
                         <span class="u-name">${u.name}</span>
-                        <div style="font-size:10px; color:#ccc;" onclick="delUser(${u.id})">删除</div>
+                        <div style="font-size:10px; color:#ccc; margin-top:2px;" onclick="delUser(${u.id})">删除</div>
                     </div>
                     <div class="u-score">${u.score}</div>
                 </div>
                 <div class="control-bar">
                     <button class="btn-main btn-sub" onclick="mod(${u.id}, false)">−</button>
-                    <input type="number" class="val-input" id="inp-${u.id}" value="${u.lastVal}">
+                    <input type="number" class="val-input" id="inp-${u.id}" value="${u.lastVal}" style="color:${u.color}; border-color:#f0f0f0">
                     <button class="btn-main btn-plus" onclick="mod(${u.id}, true)">＋</button>
                 </div>
                 <div class="quick-nums">
                     ${quickValues.map(v => `<div class="num-chip" onclick="setQuickVal(${u.id}, ${v})">${v}</div>`).join('')}
                 </div>
-                <a href="javascript:void(0)" class="hist-toggle" onclick="toggleHist(${u.id})">▼ 记录明细 / 撤销</a>
+                <a href="javascript:void(0)" class="hist-toggle" onclick="toggleHist(${u.id})">▼ 查看明细 / 撤销记录</a>
                 <div class="hist-content" id="content-${u.id}">
                     ${u.logs.map(l => `
                         <div class="hist-item">
                             <span>${l.time}</span>
-                            <span class="${l.val>0?'win':'loss'}">${l.val>0?'+':''}${l.val}</span>
+                            <span style="color:${l.val>0? 'var(--success)':'var(--danger)'}; font-weight:bold">${l.val>0?'+':''}${l.val}</span>
                             <span class="btn-revoke" onclick="revoke(${u.id}, ${l.id})">撤销</span>
                         </div>
-                    `).join('') || '<div style="text-align:center;color:#ccc">无</div>'}
+                    `).join('') || '<div style="text-align:center;color:#ccc;font-size:11px">暂无流水记录</div>'}
                 </div>
             </div>
         `).join('');
 
         document.getElementById('settleList').innerHTML = state.users.map(u => {
             const final = (u.score * state.rate).toFixed(1);
-            return `<div class="settle-row"><span>${u.name}</span><span class="${final>=0?'win':'loss'}">${final>=0?'+':''}${final}</span></div>`;
-        }).join('') || '<div style="color:#666">列表为空</div>';
+            return `
+                <div class="settle-row">
+                    <span style="color:${u.color}">${u.name}</span>
+                    <span style="color:${final >= 0 ? 'var(--success)' : 'var(--danger)'}">${final >= 0 ? '+' : ''}${final}</span>
+                </div>
+            `;
+        }).join('') || '<div style="color:#666">请添加成员开始记分</div>';
     }
 
     render();
