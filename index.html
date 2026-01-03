@@ -30,13 +30,12 @@
         .user-card { 
             background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px; 
             border: 1px solid #f0f0f0; position: relative; overflow: hidden;
-            border-left: 6px solid var(--theme-color); /* 动态主题色 */
+            border-left: 6px solid var(--theme-color);
         }
         .user-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
         .u-name { font-size: 1.1rem; font-weight: bold; color: var(--theme-color); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .u-score { font-size: 1.8rem; font-weight: 800; color: var(--theme-color); }
 
-        /* 操作栏 */
         .control-bar { display: flex; align-items: center; gap: 8px; margin-bottom: 12px; }
         .btn-main { width: 55px; height: 50px; border: none; border-radius: 12px; font-size: 24px; color: white; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         .btn-sub { background: var(--danger); box-shadow: 0 3px 0 #cf1322; }
@@ -44,19 +43,16 @@
         .btn-main:active { transform: translateY(2px); box-shadow: none; }
         .val-input { flex: 1; min-width: 0; height: 50px; font-size: 20px; font-weight: bold; border: 2px solid #f0f0f0; background: #fafafa; border-radius: 12px; text-align: center; }
 
-        /* 快捷数字 */
         .quick-nums { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
         .quick-nums::-webkit-scrollbar { display: none; }
         .num-chip { padding: 6px 12px; background: #f0f2f5; border-radius: 20px; font-size: 13px; color: #595959; flex-shrink: 0; border: 1px solid #e8e8e8; }
         .num-chip:active { background: var(--theme-color); color: white; border-color: var(--theme-color); }
 
-        /* 历史记录 */
         .hist-toggle { display: block; text-align: center; font-size: 12px; color: #bfbfbf; padding: 12px 0 0; text-decoration: none; }
         .hist-content { display: none; background: #fafafa; border-radius: 10px; padding: 8px; margin-top: 10px; max-height: 150px; overflow-y: auto; }
         .hist-item { display: flex; justify-content: space-between; align-items: center; font-size: 12px; padding: 6px 0; border-bottom: 1px dashed #eee; }
         .btn-revoke { color: var(--danger); font-size: 11px; border: 1px solid var(--danger); border-radius: 4px; padding: 2px 4px; }
 
-        /* 结算区 */
         .settle-area { background: #1a1a1a; color: #fff; border-radius: 20px; padding: 20px; margin-top: 20px; margin-bottom: 40px; }
         .settle-row { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px; }
         .btn-reset { width: 100%; background: none; border: 1px solid #444; color: #888; border-radius: 10px; padding: 12px; margin-top: 15px; }
@@ -71,7 +67,7 @@
     </div>
     <div style="margin-top:12px; font-size:14px; color:#666;">
         <div style="display:flex; justify-content: space-between; align-items:center;">
-            <span>结算倍率：<input type="number" id="rateInp" style="width:50px; text-align:center; border:1px solid #ddd; border-radius:4px;" value="1"></span>
+            <span>计算比例：<input type="number" id="rateInp" style="width:60px; text-align:center; border:1px solid #ddd; border-radius:4px;" value="100"> %</span>
             <span style="color:var(--danger); font-size:12px;" onclick="resetAll()">清空重置</span>
         </div>
         <div id="checkBalanceResult"></div>
@@ -81,7 +77,7 @@
 <div id="userList"></div>
 
 <div class="settle-area">
-    <div style="font-weight:bold; margin-bottom:15px; border-bottom:1px solid #444; padding-bottom:8px;">🏁 结算中心</div>
+    <div style="font-weight:bold; margin-bottom:15px; border-bottom:1px solid #444; padding-bottom:8px;">🏁 结算中心 (最终金额)</div>
     <div id="settleList"></div>
     <button class="btn-reset" onclick="resetAll()">删除记录开始新局</button>
 </div>
@@ -89,26 +85,29 @@
 <script>
     const colors = ['#1890ff', '#f5222d', '#52c41a', '#faad14', '#722ed1', '#13c2c2', '#eb2f96', '#fa8c16', '#a0d911', '#2f54eb'];
 
-    let state = JSON.parse(localStorage.getItem('ScorePro_Color_v7')) || { users: [], rate: 1 };
+    // 修改点 2: 默认倍率初始化为 100
+    let state = JSON.parse(localStorage.getItem('ScorePro_Color_v7')) || { users: [], rate: 100 };
 
-    // --- 新增功能：核对数据平衡性 ---
     function checkBalance() {
-        if (state.users.length === 0) return "";
+        if (state.users.length === 0) {
+            document.getElementById('checkBalanceResult').innerHTML = "";
+            return;
+        }
         const sum = state.users.reduce((acc, u) => acc + u.score, 0);
-        const displaySum = Number.isInteger(sum) ? sum : sum.toFixed(1);
+        const displaySum = Math.abs(sum) < 0.001 ? 0 : (Number.isInteger(sum) ? sum : sum.toFixed(1));
         
         const container = document.getElementById('checkBalanceResult');
-        if (sum === 0) {
+        if (displaySum === 0) {
             container.innerHTML = `<span class="balance-check balance-ok">平衡核对：账目已平 (0)</span>`;
         } else {
-            container.innerHTML = `<span class="balance-check balance-err">⚠️ 账目不平：当前总和为 ${displaySum > 0 ? '+' : ''}${displaySum}</span>`;
+            container.innerHTML = `<span class="balance-check balance-err">⚠️ 账目不平：当前总差额为 ${displaySum > 0 ? '+' : ''}${displaySum}</span>`;
         }
     }
 
     function sync() {
         localStorage.setItem('ScorePro_Color_v7', JSON.stringify(state));
         render();
-        checkBalance(); // 每次同步（即每次操作数据后）运行核对
+        checkBalance();
     }
 
     function addUser() {
@@ -164,13 +163,13 @@
 
     function resetAll() {
         if(confirm('清空所有记录？')) {
-            state = { users: [], rate: 1 };
+            state = { users: [], rate: 100 };
             sync();
         }
     }
 
     document.getElementById('rateInp').oninput = (e) => {
-        state.rate = parseFloat(e.target.value) || 1;
+        state.rate = parseFloat(e.target.value) || 0;
         sync();
     };
 
@@ -214,7 +213,8 @@
         `).join('');
 
         document.getElementById('settleList').innerHTML = state.users.map(u => {
-            const final = (u.score * state.rate).toFixed(1);
+            // 修改点 3: 最终金额计算时除以 100
+            const final = (u.score * (state.rate / 100)).toFixed(2);
             return `
                 <div class="settle-row">
                     <span style="color:${u.color}">${u.name}</span>
@@ -225,7 +225,7 @@
     }
 
     render();
-    checkBalance(); // 初始化检查一次
+    checkBalance();
 </script>
 </body>
 </html>
