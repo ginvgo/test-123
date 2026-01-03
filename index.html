@@ -3,22 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>专业记分校验版</title>
+    <title>实时核对记分器</title>
     <style>
-        :root { --primary: #1890ff; --danger: #ff4d4f; --success: #52c41a; --text: #262626; --bg: #f2f4f7; }
+        :root { --primary: #1890ff; --danger: #ff4d4f; --success: #52c41a; --warning: #faad14; --text: #262626; --bg: #f2f4f7; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body { font-family: -apple-system, system-ui, sans-serif; background: var(--bg); margin: 0; padding: 12px; color: var(--text); overflow-x: hidden; }
         
+        /* 顶部配置 */
         .card { background: white; border-radius: 16px; padding: 16px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); margin-bottom: 12px; }
         .header-group { display: flex; gap: 8px; }
         .inp-name { flex: 1; border: 1px solid #d9d9d9; border-radius: 10px; padding: 10px; font-size: 16px; min-width: 0; }
         .btn-add { background: var(--primary); color: white; border: none; border-radius: 10px; padding: 0 16px; font-weight: bold; white-space: nowrap; }
         
         /* 成员卡片 */
-        .user-card { 
-            background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px; 
-            border: 1px solid #f0f0f0; border-left: 6px solid var(--theme-color);
-        }
+        .user-card { background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px; border: 1px solid #f0f0f0; border-left: 6px solid var(--theme-color); }
         .user-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
         .u-name { font-size: 1.1rem; font-weight: bold; color: var(--theme-color); }
         .u-score { font-size: 1.8rem; font-weight: 800; color: var(--theme-color); }
@@ -30,55 +28,51 @@
         .btn-main:active { transform: translateY(2px); box-shadow: none; }
         .val-input { flex: 1; min-width: 0; height: 50px; font-size: 20px; font-weight: bold; border: 2px solid #f0f0f0; background: #fafafa; border-radius: 12px; text-align: center; }
 
+        /* 快捷数字 */
         .quick-nums { display: flex; gap: 6px; overflow-x: auto; padding-bottom: 4px; scrollbar-width: none; }
         .num-chip { padding: 6px 12px; background: #f0f2f5; border-radius: 20px; font-size: 13px; color: #595959; flex-shrink: 0; border: 1px solid #e8e8e8; }
 
-        .hist-content { display: none; background: #fafafa; border-radius: 10px; padding: 8px; margin-top: 10px; max-height: 120px; overflow-y: auto; font-size: 12px; }
-        .hist-item { display: flex; justify-content: space-between; padding: 4px 0; border-bottom: 1px dashed #eee; }
+        /* 实时核对条 - 动态显示 */
+        .check-alert { display: none; padding: 10px; border-radius: 10px; margin-bottom: 12px; font-weight: bold; text-align: center; font-size: 14px; }
+        .check-warning { display: block; background: #fffbe6; border: 1px solid #ffe58f; color: #856404; }
 
-        /* 结算与校验 */
+        /* 结算区 */
         .settle-area { background: #1a1a1a; color: #fff; border-radius: 20px; padding: 20px; margin-top: 20px; margin-bottom: 40px; }
-        .checker-bar { font-size: 12px; padding: 6px 12px; border-radius: 8px; margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center; }
-        .checker-ok { background: #237804; color: #b7eb8f; }
-        .checker-err { background: #a8071a; color: #ffa39e; animation: blink 1s infinite; }
-        @keyframes blink { 50% { opacity: 0.7; } }
-
         .settle-row { display: flex; justify-content: space-between; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 5px; }
+        .win { color: var(--success); } .loss { color: var(--danger); }
     </style>
 </head>
 <body>
 
 <div class="card">
     <div class="header-group">
-        <input type="text" id="nameInp" class="inp-name" placeholder="输入成员姓名...">
+        <input type="text" id="nameInp" class="inp-name" placeholder="成员姓名...">
         <button class="btn-add" onclick="addUser()">添加</button>
     </div>
-    <div style="margin-top:12px; font-size:14px; color:#666; display:flex; justify-content: space-between; align-items:center;">
-        <span>倍率：<input type="number" id="rateInp" step="0.1" style="width:60px; text-align:center; border:1px solid #ddd; border-radius:4px;" value="1"></span>
-        <span style="color:var(--danger); font-size:12px;" onclick="resetAll()">清空重置</span>
+    <div style="margin-top:12px; font-size:14px; color:#666; display:flex; justify-content: space-between;">
+        <span>倍率：<input type="number" id="rateInp" step="0.1" style="width:60px; text-align:center;" value="1"></span>
+        <span style="color:#aaa" onclick="resetAll()">重置清空</span>
     </div>
 </div>
+
+<div id="checkInpAlert" class="check-alert"></div>
 
 <div id="userList"></div>
 
 <div class="settle-area">
-    <div style="font-weight:bold; margin-bottom:12px;">🏁 结算中心</div>
-    
-    <div id="checker" class="checker-bar checker-ok">
-        <span>数据校验：平衡</span>
-        <span id="sumVal">0</span>
+    <div style="font-weight:bold; margin-bottom:12px; display:flex; justify-content:space-between;">
+        <span>🏁 结算流水</span>
+        <span id="totalCheckStatus" style="font-size:12px;"></span>
     </div>
-
     <div id="settleList"></div>
-    <button style="width:100%; background:none; border:1px solid #444; color:#888; border-radius:10px; padding:12px; margin-top:15px;" onclick="resetAll()">清除数据开始新局</button>
 </div>
 
 <script>
     const colors = ['#1890ff', '#f5222d', '#52c41a', '#faad14', '#722ed1', '#13c2c2', '#eb2f96', '#fa8c16'];
-    let state = JSON.parse(localStorage.getItem('ScorePro_Final_v8')) || { users: [], rate: 1 };
+    let state = JSON.parse(localStorage.getItem('ScoreRealCheck_v9')) || { users: [], rate: 1 };
 
     function sync() {
-        localStorage.setItem('ScorePro_Final_v8', JSON.stringify(state));
+        localStorage.setItem('ScoreRealCheck_v9', JSON.stringify(state));
         render();
     }
 
@@ -103,7 +97,6 @@
     }
 
     function revoke(userId, logId) {
-        if(!confirm('确定撤销？')) return;
         const user = state.users.find(u => u.id === userId);
         const log = user.logs.find(l => l.id === logId);
         if (log) {
@@ -114,19 +107,16 @@
     }
 
     function render() {
-        const rateInp = document.getElementById('rateInp');
-        rateInp.value = state.rate;
-        const rate = state.rate;
+        document.getElementById('rateInp').value = state.rate;
         const quickValues = [1, 2, 3, 5, 10, 20, 50, 100];
-        
-        let totalSum = 0; // 用于核对
-        
+        let totalScoreSum = 0;
+
         document.getElementById('userList').innerHTML = state.users.map(u => {
-            totalSum += u.score;
+            totalScoreSum += u.score;
             return `
             <div class="user-card" style="--theme-color: ${u.color}">
                 <div class="user-header">
-                    <span class="u-name">${u.name} <small style="font-weight:normal;color:#ccc" onclick="delUser(${u.id})">删除</small></span>
+                    <span class="u-name">${u.name} <small style="font-weight:normal;color:#ccc;margin-left:8px" onclick="delUser(${u.id})">删除</small></span>
                     <div class="u-score">${u.score}</div>
                 </div>
                 <div class="control-bar">
@@ -137,33 +127,36 @@
                 <div class="quick-nums">
                     ${quickValues.map(v => `<div class="num-chip" onclick="setQuickVal(${u.id}, ${v})">${v}</div>`).join('')}
                 </div>
-                <div style="text-align:center; padding-top:10px; font-size:12px; color:#ccc" onclick="toggleHist(${u.id})">▼ 查看明细 / 撤销</div>
-                <div class="hist-content" id="content-${u.id}">
-                    ${u.logs.map(l => `<div class="hist-item"><span>${l.time}</span><span>${l.val > 0 ? '+' : ''}${l.val}</span><span style="color:red" onclick="revoke(${u.id}, ${l.id})">撤销</span></div>`).join('')}
+                <div style="text-align:center; padding-top:10px; font-size:12px; color:#ccc" onclick="toggleHist(${u.id})">▼ 查看流水/撤销</div>
+                <div class="hist-content" id="content-${u.id}" style="display:none; font-size:12px; background:#fafafa; border-radius:8px; padding:8px; margin-top:10px;">
+                    ${u.logs.map(l => `<div style="display:flex; justify-content:space-between; padding:4px 0; border-bottom:1px dashed #eee;"><span>${l.time}</span><span>${l.val>0?'+':''}${l.val}</span><span style="color:red" onclick="revoke(${u.id}, ${l.id})">撤销</span></div>`).join('') || '暂无记录'}
                 </div>
             </div>`;
         }).join('');
 
-        // 更新校验器状态
-        const checker = document.getElementById('checker');
-        const sumVal = document.getElementById('sumVal');
-        sumVal.innerText = totalSum;
-        if (Math.abs(totalSum) < 0.0001) { // 浮点数处理，接近0即为平衡
-            checker.className = 'checker-bar checker-ok';
-            checker.innerHTML = `<span>✅ 数据已平衡 (0)</span>`;
+        // 实时核对逻辑
+        const alertBox = document.getElementById('checkInpAlert');
+        const statusText = document.getElementById('totalCheckStatus');
+        
+        if (state.users.length > 0 && Math.abs(totalScoreSum) > 0.001) {
+            alertBox.innerText = `⚠️ 账目不平：当前总计 ${totalScoreSum > 0 ? '+' : ''}${totalScoreSum.toFixed(1)}，请核对！`;
+            alertBox.className = 'check-alert check-warning';
+            statusText.innerText = `未平: ${totalScoreSum.toFixed(1)}`;
+            statusText.style.color = 'var(--danger)';
         } else {
-            checker.className = 'checker-bar checker-err';
-            checker.innerHTML = `<span>⚠️ 数据不平衡 (差额: ${totalSum > 0 ? '+' : ''}${totalSum})</span>`;
+            alertBox.className = 'check-alert'; // 自动隐藏
+            statusText.innerText = totalScoreSum === 0 && state.users.length > 0 ? '✅ 已平' : '';
+            statusText.style.color = 'var(--success)';
         }
 
-        // 渲染结算
+        // 结算列表
         document.getElementById('settleList').innerHTML = state.users.map(u => {
-            const final = (u.score * rate).toFixed(2);
-            return `<div class="settle-row"><span style="color:${u.color}">${u.name}</span><span style="${final >= 0 ? 'color:var(--success)' : 'color:var(--danger)'}">${final >= 0 ? '+' : ''}${final}</span></div>`;
-        }).join('');
+            const final = (u.score * state.rate).toFixed(2);
+            return `<div class="settle-row"><span style="color:${u.color}">${u.name}</span><span class="${final>=0?'win':'loss'}">${final>=0?'+':''}${final}</span></div>`;
+        }).join('') || '<div style="color:#666">请添加成员</div>';
     }
 
-    function setQuickVal(id, v) { document.getElementById('inp-'+id).value = v; state.users.find(u => u.id === id).lastVal = v; localStorage.setItem('ScorePro_Final_v8', JSON.stringify(state)); }
+    function setQuickVal(id, v) { document.getElementById('inp-'+id).value = v; state.users.find(u => u.id === id).lastVal = v; localStorage.setItem('ScoreRealCheck_v9', JSON.stringify(state)); }
     function delUser(id) { if(confirm('确认删除？')) { state.users = state.users.filter(u => u.id !== id); sync(); } }
     function resetAll() { if(confirm('重置所有？')) { state = { users: [], rate: 1 }; sync(); } }
     function toggleHist(id) { const c = document.getElementById('content-'+id); c.style.display = c.style.display === 'block' ? 'none' : 'block'; }
