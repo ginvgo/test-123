@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>多彩专业记分 Pro</title>
+    <title>记分</title>
     <style>
         :root { --primary: #1890ff; --danger: #ff4d4f; --success: #52c41a; --text: #262626; --bg: #f2f4f7; --warning: #faad14; }
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -36,7 +36,7 @@
 
         /* 成员卡片设计 */
         .user-card { 
-            background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px; 
+            background: white; border-radius: 2px; padding: 16px; margin-bottom: 12px; 
             border: 1px solid #f0f0f0; position: relative; overflow: hidden;
             border-left: 6px solid var(--theme-color);
         }
@@ -72,7 +72,7 @@
 
 <div class="card">
     <div class="header-group">
-        <input type="text" id="nameInp" class="inp-name" placeholder="输入成员姓名...">
+        <input type="text" id="nameInp" class="inp-name" placeholder="输入成员...">
         <button class="btn-add" onclick="addUser()">添加</button>
     </div>
     <div style="margin-top:12px; font-size:14px; color:#666;">
@@ -198,7 +198,7 @@
 
     function render() {
         document.getElementById('rateInp').value = state.rate;
-        const quickValues = [1, 2, 3, 5, 10, 20, 50, 100];
+        const quickValues = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 20, 50, 100];
 
         document.getElementById('userList').innerHTML = state.users.map(u => `
             <div class="user-card" style="--theme-color: ${u.color}">
