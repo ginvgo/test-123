@@ -26,6 +26,14 @@
             75% { transform: translateX(4px); }
         }
 
+        /* 新增：小弹窗 Toast 样式 */
+        #toast-container {
+            position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.75); color: white; padding: 12px 24px;
+            border-radius: 25px; z-index: 9999; display: none; pointer-events: none;
+            font-weight: bold; text-align: center; box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+        }
+
         /* 成员卡片设计 */
         .user-card { 
             background: white; border-radius: 16px; padding: 16px; margin-bottom: 12px; 
@@ -60,6 +68,8 @@
 </head>
 <body>
 
+<div id="toast-container"></div>
+
 <div class="card">
     <div class="header-group">
         <input type="text" id="nameInp" class="inp-name" placeholder="输入成员姓名...">
@@ -77,16 +87,25 @@
 <div id="userList"></div>
 
 <div class="settle-area">
-    <div style="font-weight:bold; margin-bottom:15px; border-bottom:1px solid #444; padding-bottom:8px;">🏁 结算中心 (最终金额)</div>
+    <div style="font-weight:bold; margin-bottom:15px; border-bottom:1px solid #444; padding-bottom:8px;">🏁 结算中心</div>
     <div id="settleList"></div>
     <button class="btn-reset" onclick="resetAll()">删除记录开始新局</button>
 </div>
 
 <script>
     const colors = ['#1890ff', '#f5222d', '#52c41a', '#faad14', '#722ed1', '#13c2c2', '#eb2f96', '#fa8c16', '#a0d911', '#2f54eb'];
-
-    // 修改点 2: 默认倍率初始化为 100
     let state = JSON.parse(localStorage.getItem('ScorePro_Color_v7')) || { users: [], rate: 100 };
+
+    // 新增：显示 Toast 弹窗
+    function showToast(msg) {
+        const toast = document.getElementById('toast-container');
+        toast.innerText = msg;
+        toast.style.display = 'block';
+        clearTimeout(window.toastTimer);
+        window.toastTimer = setTimeout(() => {
+            toast.style.display = 'none';
+        }, 1200); // 1.2秒后自动消失
+    }
 
     function checkBalance() {
         if (state.users.length === 0) {
@@ -100,7 +119,7 @@
         if (displaySum === 0) {
             container.innerHTML = `<span class="balance-check balance-ok">平衡核对：账目已平 (0)</span>`;
         } else {
-            container.innerHTML = `<span class="balance-check balance-err">⚠️ 账目不平：当前总差额为 ${displaySum > 0 ? '+' : ''}${displaySum}</span>`;
+            container.innerHTML = `<span class="balance-check balance-err">⚠️ 账目不平：总差额 ${displaySum > 0 ? '+' : ''}${displaySum}</span>`;
         }
     }
 
@@ -114,14 +133,7 @@
         const name = document.getElementById('nameInp').value.trim();
         if(!name) return;
         const colorIdx = state.users.length % colors.length;
-        state.users.push({ 
-            id: Date.now(), 
-            name, 
-            score: 0, 
-            logs: [], 
-            lastVal: 10,
-            color: colors[colorIdx] 
-        });
+        state.users.push({ id: Date.now(), name, score: 0, logs: [], lastVal: 10, color: colors[colorIdx] });
         document.getElementById('nameInp').value = '';
         sync();
     }
@@ -133,6 +145,10 @@
         const change = isAdd ? val : -val;
         user.score += change;
         user.logs.unshift({ id: Date.now(), time: new Date().toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}), val: change });
+        
+        // --- 修改点：在数据更新后增加弹窗提示 ---
+        showToast(`${user.name}：${change > 0 ? '+' : ''}${change}`);
+        
         sync();
     }
 
@@ -141,8 +157,10 @@
         const user = state.users.find(u => u.id === userId);
         const logIndex = user.logs.findIndex(l => l.id === logId);
         if (logIndex > -1) {
-            user.score -= user.logs[logIndex].val;
+            const val = user.logs[logIndex].val;
+            user.score -= val;
             user.logs.splice(logIndex, 1);
+            showToast(`已撤销 ${user.name} 的记录 (${val > 0 ? '+' : ''}${val})`);
             sync();
         }
     }
@@ -213,7 +231,6 @@
         `).join('');
 
         document.getElementById('settleList').innerHTML = state.users.map(u => {
-            // 修改点 3: 最终金额计算时除以 100
             const final = (u.score * (state.rate / 100)).toFixed(2);
             return `
                 <div class="settle-row">
